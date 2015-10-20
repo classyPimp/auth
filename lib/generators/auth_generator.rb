@@ -129,6 +129,11 @@ class AuthGenerator < Rails::Generators::Base
     append_to_file p_r_mailer_html, user_mailer_password_reset_view_html
     append_to_file p_r_mailer_text, user_mailer_password_reset_view_text
   end
+  
+  def configure_routes
+    inject_into_file "config/routes.rb", routes_config, 
+                      after: "Rails.application.routes.draw do\n"
+  end
 
 =begin
             
@@ -709,5 +714,21 @@ end
   config.action_mailer.default_url_options = { :host => "localhost:3000" }
   #########END CHANGED
 }
+  end
+  
+  def routes_config
+    %Q{
+# BASIC AUTH
+  get "sign_up" => "users#new"
+  resources :users, except: [:new]
+  get    'login'  => 'sessions#new'
+  post   'login'  => 'sessions#create'
+  delete 'logout' => 'sessions#destroy'
+  #ACCOUNT ACTIVATION
+  resources :account_activations, only: [:edit]
+  #PASSWORD RESETS
+  resources :password_resets, only: [:new, :create, :edit, :update]
+# END BASIC AUTH      
+    }
   end
 end
